@@ -1,0 +1,16 @@
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 400;
+
+  /* Браузер сначала попробует найти шрифт локально */
+  src: local("Roboto"),
+       url("/static/fonts/base.woff") format("woff");
+}
+
+
+.robo_text {
+  color: rgba(38, 202, 54, 1);
+  font: normal bold 16px/1.2 Roboto;
+  letter-spacing: 0px;
+}
