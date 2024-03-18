@@ -11,8 +11,12 @@ small_db = TinyDB('keys_db.json')
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 
+no_use_codes = []
+
 
 def main():
+    global no_use_codes
+    no_use_codes = update_no_use_codes(10)
     app.run()
 
 
@@ -37,14 +41,36 @@ def check_correct_code(code):
     Todo = Query()
     raw_code = table.get(Todo.code == code)
     if raw_code is None:
+        return False
+    if raw_code["isCheck"]:
+        return False
+    return True
+
+
+def save_code_in_db(code):
+    global no_use_codes
+    table = small_db.table("codes")
+    Todo = Query()
+    is_check = table.get(Todo.code == code)
+    if is_check is not None:
+        is_check["isCheck"] = True
+        table.update(is_check, Todo.code == code)
+        no_use_codes = update_no_use_codes(10)
         return True
     return False
 
 
-def save_code_in_db(code):
+def update_no_use_codes(count: int):
     table = small_db.table("codes")
-    table.insert({"code": code})
-    return True
+    codes = []
+    for i in range(len(table)):
+        code = table.get(doc_id=i)
+        if code is not None:
+            if not code["isCheck"]:
+                codes.append(code)
+                if len(codes) > count:
+                    break
+    return codes
 
 
 def use_key(key):
@@ -76,6 +102,7 @@ def input_code(key):
             message = "Неверный ключ"
     return render_template('codes.html', form=form, url_for=url_for, message=message,
                            is_input_key=True,
+                           codes=no_use_codes,
                            url=f'/codes/{key}')
 
 
@@ -98,6 +125,7 @@ def input_code_and_kay():
             message = "Неверный ключ"
     return render_template('codes.html', form=form, url_for=url_for, message=message,
                            is_input_key=False,
+                           codes=no_use_codes,
                            url=f'/codes/')
 
 

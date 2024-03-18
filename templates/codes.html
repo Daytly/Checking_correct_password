@@ -1,24 +1,39 @@
 {% extends "base.html" %}
 
 {% block content %}
-<form method="post" class="d-flex" role="search" enctype="multipart/form-data" action="">
+<form method="post" class="" role="search" enctype="multipart/form-data" action="">
     {{ form.hidden_tag() }}
-    {%if not is_input_key%}
+    <div>
+        {%if not is_input_key%}
         {{ form.inputKey.label }}<br>
-        {{ form.inputKey(class="form-control") }}<br>
+        {{ form.inputKey(class="form-control robo_input_field") }}<br>
         {% for error in form.inputKey.errors %}
-    <p class="alert alert-danger" role="alert">
-        {{ error }}
-    </p>
-    {% endfor %}
-    {%endif%}
-    {{ form.inputCode(class="form-control") }}
-    {{form.submit(type="submit", class="btn btn-outline-success")}}
-    {% for error in form.inputCode.errors %}
-    <p class="alert alert-danger" role="alert">
-        {{ error }}
-    </p>
-    {% endfor %}
+        <p class="robo_errors_field" role="alert">
+            {{ error }}
+        </p>
+        {% endfor %}
+        {%endif%}
+    </div>
+    <br>
+    <div>
+        {{ form.inputCode.label }}<br>
+        {{ form.inputCode(class="form-control robo_input_field") }} <br>
+        {% for error in form.inputCode.errors %}
+        <p class="robo_errors_field" role="alert">
+            {{ error }}
+        </p>
+        {% endfor %}
+    </div>
+    <br>
+    <div> {{form.submit(type="submit", class="btn btn-outline-success robo_button")}}</div>
 </form>
-{{message}}
+<br>
+<div>{{message}}</div>
+<br>
+<div>
+    <p>Не проверенные коды:</p>
+    {% for code in codes %}
+    <ul style="border: 0.0rem solid rgba(38, 202, 54, 1);"> {{code['code']}} </ul>
+    {% endfor%}
+</div>
 {% endblock %}
