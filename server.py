@@ -1,5 +1,4 @@
 from flask import Flask, render_template, redirect, make_response, jsonify, url_for
-from tinydb import TinyDB, Query
 
 from data import db_session
 from data.codes import Codes
@@ -7,7 +6,6 @@ from data.keys import Keys
 from forms.InputCodeAndKeyForm import InputCodeAndKeyForm
 from forms.InputCodeForm import InputCodeForm
 
-small_db = TinyDB('keys_db.json')
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 
