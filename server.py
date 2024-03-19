@@ -16,7 +16,8 @@ def main():
     global no_use_codes
     db_session.global_init("db/db.db")
     no_use_codes = update_no_use_codes(10)
-    app.run()
+    from waitress import serve
+    serve(app, host="0.0.0.0", port=8080)
 
 
 @app.route("/", methods=['GET', 'POST'])
