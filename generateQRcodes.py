@@ -1,6 +1,4 @@
 import qrcode
-import sqlalchemy
-from tinydb import TinyDB
 
 from data import db_session
 from data.keys import Keys
