@@ -5,3 +5,4 @@ SQLAlchemy
 wtforms
 qrcode
 waitress
+sqlalchemy_serializer
