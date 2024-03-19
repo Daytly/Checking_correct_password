@@ -1,11 +1,11 @@
-import os
-from flask import Flask, render_template, redirect, make_response, request, abort, jsonify, url_for
+from flask import Flask, render_template, redirect, make_response, jsonify, url_for
 from tinydb import TinyDB, Query
 
-from constants import collection
+from data import db_session
+from data.codes import Codes
+from data.keys import Keys
 from forms.InputCodeAndKeyForm import InputCodeAndKeyForm
 from forms.InputCodeForm import InputCodeForm
-from functions import generate_unique_keys
 
 small_db = TinyDB('keys_db.json')
 app = Flask(__name__)
@@ -16,6 +16,7 @@ no_use_codes = []
 
 def main():
     global no_use_codes
+    db_session.global_init("db/db.db")
     no_use_codes = update_no_use_codes(10)
     app.run()
 
@@ -26,61 +27,57 @@ def index():
 
 
 def check_correct_key(key):
-    table = small_db.table("checks")
-    Todo = Query()
-    is_check = table.get(Todo.key == key)
-    if is_check is None:
+    db_sess = db_session.create_session()
+    row = db_sess.query(Keys).get(key)
+    db_sess.close()
+    if row is None:
         return False
-    if is_check["isCheck"]:
+    if row.is_use:
         return False
     return True
 
 
 def check_correct_code(code):
-    table = small_db.table("codes")
-    Todo = Query()
-    raw_code = table.get(Todo.code == code)
-    if raw_code is None:
+    db_sess = db_session.create_session()
+    row = db_sess.query(Codes).get(code)
+    db_sess.close()
+    if row is None:
         return False
-    if raw_code["isCheck"]:
+    if row.is_use:
         return False
     return True
 
 
 def save_code_in_db(code):
     global no_use_codes
-    table = small_db.table("codes")
-    Todo = Query()
-    is_check = table.get(Todo.code == code)
-    if is_check is not None:
-        is_check["isCheck"] = True
-        table.update(is_check, Todo.code == code)
+    db_sess = db_session.create_session()
+    row = db_sess.query(Codes).get(code)
+    if row is not None:
+        row.is_use = True
+        db_sess.merge(row)
+        db_sess.commit()
+        db_sess.close()
         no_use_codes = update_no_use_codes(10)
         return True
     return False
 
 
 def update_no_use_codes(count: int):
-    table = small_db.table("codes")
-    codes = []
-    for i in range(len(table)):
-        code = table.get(doc_id=i)
-        if code is not None:
-            if not code["isCheck"]:
-                codes.append(code)
-                if len(codes) > count:
-                    break
-    return codes
+    db_sess = db_session.create_session()
+    rows = db_sess.query(Codes).filter(Codes.is_use == False)[:count]
+    return rows
 
 
 def use_key(key):
-    table_keys = small_db.table("checks")
-    Todo = Query()
-    is_check = table_keys.get(Todo.key == key)
-    if is_check is not None:
-        is_check["isCheck"] = True
-        table_keys.update(is_check, Todo.key == key)
+    db_sess = db_session.create_session()
+    row = db_sess.query(Keys).get(key)
+    if row is not None:
+        row.is_use = True
+        db_sess.merge(row)
+        db_sess.commit()
+        db_sess.close()
         return True
+    db_sess.close()
     return False
 
 

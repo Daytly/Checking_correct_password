@@ -1,13 +1,19 @@
 import qrcode
+import sqlalchemy
 from tinydb import TinyDB
 
+from data import db_session
+from data.keys import Keys
+
 if input("Введите пароль: ") == "HardPassword":
-    small_db = TinyDB('keys_db.json')
-    table = small_db.table("checks")
-    keys = [i["key"] for i in table.all()]
-    for i in range(len(keys[:300])):
-        URL = "http://" + "127.0.0.1:5000" + f"/codes/{keys[i]}"
+    db_session.global_init("db/db.db")
+    db_sess = db_session.create_session()
+    keys = db_sess.query(Keys).all()[:300]
+    for i in range(len(keys)):
+        URL = "https://" + "super-c0mputer.glitch.me" + f"/codes/{keys[i].key}"
         filename = f"QRs/QR{i}.png"
         img = qrcode.make(URL)
         img.save(filename)
-    small_db.close()
+    db_sess.close()
+else:
+    print("В доступе отказано")

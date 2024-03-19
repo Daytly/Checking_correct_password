@@ -1,12 +1,15 @@
-from tinydb import TinyDB
-
-from constants import collection
-from functions import generate_unique_keys
+from data import db_session
+from data.codes import Codes
 
 if input("Введите пароль: ") == "HardPassword":
-    small_db = TinyDB('keys_db.json')
-    table = small_db.table("codes")
-    small_db.drop_table("codes")
+    db_session.global_init("db/db.db")
+    db_sess = db_session.create_session()
+    db_sess.query(Codes).delete()
     for code in range(1, 3001):
-        table.insert({"code": code, "isCheck": False})
-    small_db.close()
+        new_code = Codes()
+        new_code.code = code
+        db_sess.merge(new_code)
+    db_sess.commit()
+    db_sess.close()
+else:
+    print("В доступе отказано")
