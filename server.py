@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, make_response, jsonify, url_for
+from flask import Flask, render_template, redirect, make_response, jsonify, url_for, request
 
 from data import db_session
 from data.codes import Codes
@@ -23,6 +23,50 @@ def main():
 @app.route("/", methods=['GET', 'POST'])
 def index():
     return render_template("index.html")
+
+@app.route("/codes", methods=['GET', 'POST'])
+def input_code_and_kay():
+    key = request.args.get('key')
+    if key is None:
+        form = InputCodeAndKeyForm()
+    else:
+        form = InputCodeForm()
+    message = ""
+    if form.validate_on_submit():
+        if key is None:
+            key = form.inputKey.data
+        if check_correct_key(key):
+            if check_correct_code(form.inputCode.data):
+                if save_code_in_db(form.inputCode.data):
+                    if use_key(key):
+                        return redirect(f'/success/{form.inputCode.data}')
+                else:
+                    message = "Ошибка"
+            else:
+                message = "Такой код уже был"
+        else:
+            message = "Неверный ключ"
+    return render_template('codes.html', form=form, url_for=url_for, message=message,
+                           is_input_key=key is not None,
+                           codes=no_use_codes,
+                           url=f'/codes')
+
+
+@app.route("/success/<int:code>")
+def success(code):
+    return render_template('success.html',
+                           code=code,
+                           url_for=url_for)
+
+
+@app.errorhandler(404)
+def not_found(error):
+    return make_response(jsonify({'error': 'Not found'}), 404)
+
+
+@app.errorhandler(400)
+def bad_request(_):
+    return make_response(jsonify({'error': 'Bad Request'}), 400)
 
 
 def check_correct_key(key):
@@ -78,68 +122,6 @@ def use_key(key):
         return True
     db_sess.close()
     return False
-
-
-@app.route("/codes/<string:key>", methods=['GET', 'POST'])
-def input_code(key):
-    form = InputCodeForm()
-    message = ""
-    if form.validate_on_submit():
-        if check_correct_key(key):
-            if check_correct_code(form.inputCode.data):
-                if save_code_in_db(form.inputCode.data):
-                    if use_key(key):
-                        return redirect(f'/success/{form.inputCode.data}')
-                else:
-                    message = "Ошибка"
-            else:
-                message = "Такой код уже был"
-        else:
-            message = "Неверный ключ"
-    return render_template('codes.html', form=form, url_for=url_for, message=message,
-                           is_input_key=True,
-                           codes=no_use_codes,
-                           url=f'/codes/{key}')
-
-
-@app.route("/codes/", methods=['GET', 'POST'])
-def input_code_and_kay():
-    form = InputCodeAndKeyForm()
-    message = ""
-    if form.validate_on_submit():
-        key = form.inputKey.data
-        if check_correct_key(key):
-            if check_correct_code(form.inputCode.data):
-                if save_code_in_db(form.inputCode.data):
-                    if use_key(key):
-                        return redirect(f'/success/{form.inputCode.data}')
-                else:
-                    message = "Ошибка"
-            else:
-                message = "Такой код уже был"
-        else:
-            message = "Неверный ключ"
-    return render_template('codes.html', form=form, url_for=url_for, message=message,
-                           is_input_key=False,
-                           codes=no_use_codes,
-                           url=f'/codes/')
-
-
-@app.route("/success/<int:code>")
-def success(code):
-    return render_template('success.html',
-                           code=code,
-                           url_for=url_for)
-
-
-@app.errorhandler(404)
-def not_found(error):
-    return make_response(jsonify({'error': 'Not found'}), 404)
-
-
-@app.errorhandler(400)
-def bad_request(_):
-    return make_response(jsonify({'error': 'Bad Request'}), 400)
 
 
 if __name__ == '__main__':
