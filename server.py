@@ -24,7 +24,8 @@ def main():
 def index():
     return render_template("index.html")
 
-@app.route("/codes", methods=['GET', 'POST'])
+
+@app.route("/codes/", methods=['GET', 'POST'])
 def input_code_and_kay():
     key = request.args.get('key')
     if key is None:
@@ -49,7 +50,7 @@ def input_code_and_kay():
     return render_template('codes.html', form=form, url_for=url_for, message=message,
                            is_input_key=key is not None,
                            codes=no_use_codes,
-                           url=f'/codes')
+                           url=f'/codes/')
 
 
 @app.route("/success/<int:code>")
