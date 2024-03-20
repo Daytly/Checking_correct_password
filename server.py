@@ -72,7 +72,7 @@ def bad_request(_):
 
 def check_correct_key(key):
     db_sess = db_session.create_session()
-    row = db_sess.query(Keys).get(key)
+    row = db_sess.get(Keys, key)
     db_sess.close()
     if row is None:
         return False
@@ -83,7 +83,7 @@ def check_correct_key(key):
 
 def check_correct_code(code):
     db_sess = db_session.create_session()
-    row = db_sess.query(Codes).get(code)
+    row = db_sess.get(Codes, code)
     db_sess.close()
     if row is None:
         return False
@@ -95,7 +95,7 @@ def check_correct_code(code):
 def save_code_in_db(code):
     global no_use_codes
     db_sess = db_session.create_session()
-    row = db_sess.query(Codes).get(code)
+    row = db_sess.get(Codes, code)
     if row is not None:
         row.is_use = True
         db_sess.merge(row)
@@ -114,7 +114,7 @@ def update_no_use_codes(count: int):
 
 def use_key(key):
     db_sess = db_session.create_session()
-    row = db_sess.query(Keys).get(key)
+    row = db_sess.get(Keys, key)
     if row is not None:
         row.is_use = True
         db_sess.merge(row)
