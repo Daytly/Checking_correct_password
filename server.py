@@ -6,15 +6,19 @@ from data.keys import Keys
 from forms.InputCodeAndKeyForm import InputCodeAndKeyForm
 from forms.InputCodeForm import InputCodeForm
 
+def update_no_use_codes(count: int):
+    db_sess = db_session.create_session()
+    rows = db_sess.query(Codes).filter(Codes.is_use == False)[:count]
+    return rows
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
-
+db_session.global_init("db/db.db")
 no_use_codes = []
 
 
 def main():
     global no_use_codes
-    db_session.global_init("db/db.db")
     no_use_codes = update_no_use_codes(10)
     from waitress import serve
     serve(app, host="0.0.0.0", port=8080)
@@ -30,8 +34,10 @@ def input_code_and_kay():
     key = request.args.get('key')
     if key is None:
         form = InputCodeAndKeyForm()
+        is_input_key = False
     else:
         form = InputCodeForm()
+        is_input_key = True
     message = ""
     if form.validate_on_submit():
         if key is None:
@@ -48,9 +54,9 @@ def input_code_and_kay():
         else:
             message = "Неверный ключ"
     return render_template('codes.html', form=form, url_for=url_for, message=message,
-                           is_input_key=key is not None,
+                           is_input_key=is_input_key,
                            codes=no_use_codes,
-                           url=f'/codes/')
+                           url='/codes/')
 
 
 @app.route("/success/<int:code>")
@@ -105,11 +111,6 @@ def save_code_in_db(code):
         return True
     return False
 
-
-def update_no_use_codes(count: int):
-    db_sess = db_session.create_session()
-    rows = db_sess.query(Codes).filter(Codes.is_use == False)[:count]
-    return rows
 
 
 def use_key(key):
